@@ -7,13 +7,15 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"text/template"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
 type application struct {
-	logger *slog.Logger
+	logger        *slog.Logger
+	templateCache map[string]*template.Template
 }
 
 type config struct {
@@ -27,8 +29,17 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	templateCache, err := newTemplateCache()
+
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+
+	}
+
 	app := &application{
-		logger: logger,
+		logger:        logger,
+		templateCache: templateCache,
 	}
 
 	r := mux.NewRouter()
